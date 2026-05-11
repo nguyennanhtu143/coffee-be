@@ -29,7 +29,8 @@ public class SecurityConfig {
                 // Public endpoints - không cần đăng nhập
                 .requestMatchers("/api/v1/user/sign-up", "/api/v1/user/log-in",
                         "/api/v1/user/verify-register-otp", "/api/v1/user/resend-register-otp",
-                        "/api/v1/user/forgot-password", "/api/v1/user/reset-password").permitAll()
+                        "/api/v1/user/forgot-password", "/api/v1/user/verify-password-reset-otp",
+                        "/api/v1/user/reset-password").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/product/get-products").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/product/get-products-by-category").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/product/get-details").permitAll()

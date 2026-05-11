@@ -16,6 +16,7 @@ import org.example.coffee.dto.user.SignUpRequest;
 import org.example.coffee.dto.user.TokenResponse;
 import org.example.coffee.dto.user.UserOutput;
 import org.example.coffee.dto.user.UserRequest;
+import org.example.coffee.dto.user.VerifyPasswordResetOtpRequest;
 import org.example.coffee.dto.user.VerifyRegisterOtpRequest;
 import org.example.coffee.entity.UserEntity;
 import org.example.coffee.exceptionhandler.BadRequestException;
@@ -45,7 +46,9 @@ public class UserService {
     private static final String REGISTER_OTP_KEY_PREFIX = "register:otp:";
     private static final String REGISTER_DATA_KEY_PREFIX = "register:data:";
     private static final Duration PASSWORD_RESET_OTP_TTL = Duration.ofMinutes(5);
+    private static final Duration PASSWORD_RESET_VERIFIED_TTL = Duration.ofMinutes(10);
     private static final String PASSWORD_RESET_OTP_KEY_PREFIX = "password-reset:otp:";
+    private static final String PASSWORD_RESET_VERIFIED_KEY_PREFIX = "password-reset:verified:";
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
 	private final UserRepository userRepository;
@@ -149,8 +152,7 @@ public class UserService {
         return "OTP_SENT";
     }
 
-    @Transactional
-    public String resetPassword(ResetPasswordRequest request) {
+    public String verifyPasswordResetOtp(VerifyPasswordResetOtpRequest request) {
         String email = normalizeEmail(request.getEmail());
         String key = getPasswordResetOtpKey(email);
         String currentOtp = stringRedisTemplate.opsForValue().get(key);
@@ -166,9 +168,29 @@ public class UserService {
             throw new BadRequestException("EMAIL_NOT_FOUND");
         }
 
+        stringRedisTemplate.delete(key);
+        stringRedisTemplate.opsForValue().set(getPasswordResetVerifiedKey(email), "true", PASSWORD_RESET_VERIFIED_TTL);
+        log.info("Password reset OTP verified for email: {}", email);
+        return "PASSWORD_RESET_OTP_VERIFIED";
+    }
+
+    @Transactional
+    public String resetPassword(ResetPasswordRequest request) {
+        String email = normalizeEmail(request.getEmail());
+        String verifiedKey = getPasswordResetVerifiedKey(email);
+        String verified = stringRedisTemplate.opsForValue().get(verifiedKey);
+        if (!"true".equals(verified)) {
+            throw new BadRequestException("PASSWORD_RESET_NOT_VERIFIED");
+        }
+
+        UserEntity userEntity = userRepository.findByEmail(email);
+        if (Objects.isNull(userEntity)) {
+            throw new BadRequestException("EMAIL_NOT_FOUND");
+        }
+
         userEntity.setPassword(BCrypt.hashpw(request.getNewPassword(), BCrypt.gensalt()));
         userRepository.save(userEntity);
-        stringRedisTemplate.delete(key);
+        stringRedisTemplate.delete(verifiedKey);
         log.info("Password reset success for email: {}", email);
         return "PASSWORD_RESET_SUCCESS";
     }
@@ -178,7 +200,7 @@ public class UserService {
         Long userId = TokenHelper.getUserIdFromToken(accessToken);
         UserEntity userEntity = customRepository.getUserBy(userId);
         if (!BCrypt.checkpw(request.getOldPassword(), userEntity.getPassword())) {
-            throw new UnauthorizedException(Common.INCORRECT_PASSWORD);
+            throw new BadRequestException(Common.INCORRECT_PASSWORD);
         }
 
         userEntity.setPassword(BCrypt.hashpw(request.getNewPassword(), BCrypt.gensalt()));
@@ -284,5 +306,9 @@ public class UserService {
 
     private String getPasswordResetOtpKey(String email) {
         return PASSWORD_RESET_OTP_KEY_PREFIX + email;
+    }
+
+    private String getPasswordResetVerifiedKey(String email) {
+        return PASSWORD_RESET_VERIFIED_KEY_PREFIX + email;
     }
 }

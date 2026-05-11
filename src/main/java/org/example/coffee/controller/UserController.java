@@ -41,7 +41,13 @@ public class UserController {
         return userService.forgotPassword(request);
     }
 
-    @Operation(summary = "Dat lai mat khau bang OTP")
+    @Operation(summary = "Xac nhan OTP quen mat khau")
+    @PostMapping("/verify-password-reset-otp")
+    public String verifyPasswordResetOtp(@Valid @RequestBody VerifyPasswordResetOtpRequest request) {
+        return userService.verifyPasswordResetOtp(request);
+    }
+
+    @Operation(summary = "Dat lai mat khau sau khi xac nhan OTP")
     @PostMapping("/reset-password")
     public String resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
         return userService.resetPassword(request);

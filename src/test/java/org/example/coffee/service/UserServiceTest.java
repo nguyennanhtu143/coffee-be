@@ -8,6 +8,7 @@ import org.example.coffee.dto.user.PendingRegisterData;
 import org.example.coffee.dto.user.ResendRegisterOtpRequest;
 import org.example.coffee.dto.user.ResetPasswordRequest;
 import org.example.coffee.dto.user.SignUpRequest;
+import org.example.coffee.dto.user.VerifyPasswordResetOtpRequest;
 import org.example.coffee.dto.user.VerifyRegisterOtpRequest;
 import org.example.coffee.entity.UserEntity;
 import org.example.coffee.exceptionhandler.BadRequestException;
@@ -187,29 +188,52 @@ class UserServiceTest {
     }
 
     @Test
-    void resetPassword_success_updatesPasswordAndDeletesOtp() {
-        ResetPasswordRequest request = new ResetPasswordRequest();
+    void verifyPasswordResetOtp_success_setsVerifiedFlag() {
+        VerifyPasswordResetOtpRequest request = new VerifyPasswordResetOtpRequest();
         request.setEmail("test@example.com");
         request.setOtp("123456");
-        request.setNewPassword("newPassword123");
         UserEntity user = UserEntity.builder().id(1L).email("test@example.com").password("$2a$old").build();
         when(valueOperations.get("password-reset:otp:test@example.com")).thenReturn("123456");
+        when(userRepository.findByEmail("test@example.com")).thenReturn(user);
+
+        String result = userService.verifyPasswordResetOtp(request);
+
+        assertEquals("PASSWORD_RESET_OTP_VERIFIED", result);
+        verify(stringRedisTemplate).delete("password-reset:otp:test@example.com");
+        verify(valueOperations).set(eq("password-reset:verified:test@example.com"), eq("true"), eq(Duration.ofMinutes(10)));
+    }
+
+    @Test
+    void verifyPasswordResetOtp_wrongOtp_fail() {
+        VerifyPasswordResetOtpRequest request = new VerifyPasswordResetOtpRequest();
+        request.setEmail("test@example.com");
+        request.setOtp("000000");
+        when(valueOperations.get("password-reset:otp:test@example.com")).thenReturn("123456");
+
+        assertThrows(BadRequestException.class, () -> userService.verifyPasswordResetOtp(request));
+    }
+
+    @Test
+    void resetPassword_success_updatesPasswordAndDeletesVerifiedFlag() {
+        ResetPasswordRequest request = new ResetPasswordRequest();
+        request.setEmail("test@example.com");
+        request.setNewPassword("newPassword123");
+        UserEntity user = UserEntity.builder().id(1L).email("test@example.com").password("$2a$old").build();
+        when(valueOperations.get("password-reset:verified:test@example.com")).thenReturn("true");
         when(userRepository.findByEmail("test@example.com")).thenReturn(user);
 
         String result = userService.resetPassword(request);
 
         assertEquals("PASSWORD_RESET_SUCCESS", result);
         verify(userRepository).save(user);
-        verify(stringRedisTemplate).delete("password-reset:otp:test@example.com");
+        verify(stringRedisTemplate).delete("password-reset:verified:test@example.com");
     }
 
     @Test
-    void resetPassword_wrongOtp_fail() {
+    void resetPassword_notVerified_fail() {
         ResetPasswordRequest request = new ResetPasswordRequest();
         request.setEmail("test@example.com");
-        request.setOtp("000000");
         request.setNewPassword("newPassword123");
-        when(valueOperations.get("password-reset:otp:test@example.com")).thenReturn("123456");
 
         assertThrows(BadRequestException.class, () -> userService.resetPassword(request));
     }
