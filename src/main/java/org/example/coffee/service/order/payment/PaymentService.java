@@ -102,6 +102,8 @@ public class PaymentService {
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
             JsonNode responseBody = objectMapper.readTree(response.body());
 
+            log.info("SePay check đơn #{} - URL: {} - Response: {}", orderId, url, response.body());
+
             if (responseBody.has("transactions") && responseBody.get("transactions").isArray()) {
                 for (JsonNode tx : responseBody.get("transactions")) {
                     int txAmount = tx.has("amount_in") ? tx.get("amount_in").asInt() : 0;

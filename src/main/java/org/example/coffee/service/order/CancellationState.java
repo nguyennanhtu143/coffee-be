@@ -41,9 +41,14 @@ public class CancellationState implements StateOrder{
         Map<Long, List<ProductOrderMapEntity>> productOrderMapEntityMap = productOrderMapEntities
                 .stream().collect(Collectors.groupingBy(ProductOrderMapEntity::getOrderId));
 
-        Map<Long, UserEntity> userEntityMap = userRepository.findAllByIdIn(
-                userOrderEntities.stream().map(UserOrderEntity::getCancelerId).collect(Collectors.toSet())
-        ).stream().collect(Collectors.toMap(UserEntity::getId, Function.identity()));
+        Set<Long> cancelerIds = userOrderEntities.stream()
+                .map(UserOrderEntity::getCancelerId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        Map<Long, UserEntity> userEntityMap = cancelerIds.isEmpty()
+                ? Collections.emptyMap()
+                : userRepository.findAllByIdIn(cancelerIds).stream()
+                    .collect(Collectors.toMap(UserEntity::getId, Function.identity()));
 
         List<ProductOrdersOutput> productOrdersOutputs = new ArrayList<>();
         for (UserOrderEntity userOrderEntity : sortedUserOrderEntities) {
@@ -67,10 +72,11 @@ public class CancellationState implements StateOrder{
                 productOrderOutputs.add(productOrderOutput);
             }
 
-            UserEntity userEntity = userEntityMap.get(userOrderEntity.getCancelerId());
+            UserEntity cancelUser = userOrderEntity.getCancelerId() != null
+                    ? userEntityMap.get(userOrderEntity.getCancelerId()) : null;
             CancelOrderOutput cancelOrderOutput = CancelOrderOutput.builder()
                     .reason(userOrderEntity.getReasonCancellation())
-                    .name(userEntity.getFullName())
+                    .name(cancelUser != null ? cancelUser.getFullName() : "Hệ thống")
                     .build();
             ProductOrdersOutput productOrdersOutput = ProductOrdersOutput.builder()
                     .orderId(userOrderEntity.getId())

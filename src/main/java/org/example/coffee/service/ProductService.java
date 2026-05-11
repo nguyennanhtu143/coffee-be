@@ -3,6 +3,7 @@ package org.example.coffee.service;
 import lombok.AllArgsConstructor;
 import org.example.coffee.cloudinary.CloudinaryHelper;
 import org.example.coffee.common.Common;
+import org.example.coffee.common.ProductSite;
 import org.example.coffee.dto.product.ProductInput;
 import org.example.coffee.dto.product.ProductOutput;
 import org.example.coffee.dto.productsize.ProductSizeOutput;
@@ -15,6 +16,7 @@ import org.example.coffee.token.TokenHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,6 +36,7 @@ public class ProductService {
     private final ProductCategoryRepository productCategoryRepository;
     private final CommentRepository commentRepository;
     private final ProductSizeRepository productSizeRepository;
+    private final ProductPageConfigService productPageConfigService;
 
     @Transactional
     public void createProduct(String accessToken, ProductInput productInput, MultipartFile multipartFile) {
@@ -82,8 +85,9 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
-    public Page<ProductOutput> getProducts(Pageable pageable) {
-        Page<ProductEntity> products = productRepository.findAll(pageable);
+    public Page<ProductOutput> getProducts(ProductSite site, Integer requestedSize, Pageable pageable) {
+        Pageable resolvedPageable = resolveProductPageable(site, requestedSize, pageable);
+        Page<ProductEntity> products = productRepository.findAll(resolvedPageable);
         if (Objects.isNull(products) || products.isEmpty()) {
             return Page.empty();
         }
@@ -97,11 +101,12 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
-    public Page<ProductOutput> getProductsByCategory(Pageable pageable, Long categoryId) {
+    public Page<ProductOutput> getProductsByCategory(ProductSite site, Integer requestedSize, Pageable pageable, Long categoryId) {
         List<Long> productIds = productCategoryRepository.findAllByCategoryId(categoryId)
                 .stream().map(ProductCategoryMapEntity::getProductId).collect(Collectors.toList());
 
-        Page<ProductEntity> products = productRepository.findAllByIdIn(productIds, pageable);
+        Pageable resolvedPageable = resolveProductPageable(site, requestedSize, pageable);
+        Page<ProductEntity> products = productRepository.findAllByIdIn(productIds, resolvedPageable);
         if (Objects.isNull(products) || products.isEmpty()) {
             return Page.empty();
         }
@@ -185,8 +190,9 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
-    public Page<ProductOutput> getProductsBySearch(String search, Pageable pageable) {
-        Page<ProductEntity> productEntities = productRepository.searchProductEntitiesByString(search, pageable);
+    public Page<ProductOutput> getProductsBySearch(String search, ProductSite site, Integer requestedSize, Pageable pageable) {
+        Pageable resolvedPageable = resolveProductPageable(site, requestedSize, pageable);
+        Page<ProductEntity> productEntities = productRepository.searchProductEntitiesByString(search, resolvedPageable);
         if (Objects.isNull(productEntities) || productEntities.isEmpty()) {
             return Page.empty();
         }
@@ -196,6 +202,46 @@ public class ProductService {
         ).stream().collect(Collectors.groupingBy(ProductSizeEntity::getProductId));
 
         return productEntities.map(productEntity -> buildProductOutput(productEntity, sizeMap.get(productEntity.getId())));
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ProductOutput> getAdminProducts(String accessToken, String search, Long categoryId,
+                                                String sortBy, String direction, Pageable pageable) {
+        Long userId = TokenHelper.getUserIdFromToken(accessToken);
+        UserEntity userEntity = customRepository.getUserBy(userId);
+        if (userEntity.getIsShop().equals(Boolean.FALSE)) {
+            throw new ForbiddenException(Common.ACTION_FAIL);
+        }
+
+        String resolvedSortBy = normalizeProductSortBy(sortBy);
+        String resolvedDirection = "asc".equalsIgnoreCase(direction) ? "asc" : "desc";
+        Page<ProductEntity> productEntities = productRepository.searchAdminProducts(
+                normalizeSearch(search), categoryId, resolvedSortBy, resolvedDirection, pageable);
+        if (Objects.isNull(productEntities) || productEntities.isEmpty()) {
+            return Page.empty();
+        }
+
+        Map<Long, List<ProductSizeEntity>> sizeMap = productSizeRepository.findAllByProductIdIn(
+                productEntities.stream().map(ProductEntity::getId).collect(Collectors.toList())
+        ).stream().collect(Collectors.groupingBy(ProductSizeEntity::getProductId));
+
+        return productEntities.map(productEntity -> buildProductOutput(productEntity, sizeMap.get(productEntity.getId())));
+    }
+
+    private Pageable resolveProductPageable(ProductSite site, Integer requestedSize, Pageable pageable) {
+        int pageSize = productPageConfigService.resolvePageSize(site, requestedSize);
+        return PageRequest.of(pageable.getPageNumber(), pageSize, pageable.getSort());
+    }
+
+    private String normalizeProductSortBy(String sortBy) {
+        if ("name".equals(sortBy) || "price".equals(sortBy)) {
+            return sortBy;
+        }
+        return "createdAt";
+    }
+
+    private String normalizeSearch(String search) {
+        return Objects.isNull(search) || search.trim().isEmpty() ? null : search.trim();
     }
 
     private ProductOutput buildProductOutput(ProductEntity productEntity, List<ProductSizeEntity> sizes) {

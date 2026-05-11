@@ -37,6 +37,7 @@ class OrderServiceTest {
     @Mock private CartMapRepository cartMapRepository;
     @Mock private CustomRepository customRepository;
     @Mock private StateGeneration stateGeneration;
+    @Mock private UserAddressRepository userAddressRepository;
 
     @InjectMocks
     private OrderService orderService;
@@ -63,6 +64,8 @@ class OrderServiceTest {
             input.setPaymentMethod("cash");
             input.setProductOrderInputs(List.of(productOrderInput));
             input.setTotalPrice(100000);
+            input.setToDistrictId(1542);
+            input.setToWardCode("1B1515");
 
             UserOrderEntity orderEntity = UserOrderEntity.builder().id(1L).totalPrice(100000).build();
             when(userOrderMapper.getEntityFromInput(input)).thenReturn(orderEntity);

@@ -30,12 +30,14 @@ public class OrderService {
     private final CartMapRepository cartMapRepository;
     private final CustomRepository customRepository;
     private final StateGeneration stateGeneration;
+    private final UserAddressRepository userAddressRepository;
 
     @Transactional
     public UserOrderOutput orderProducts(String accessToken, UserOrderInput userOrderInput) {
         Long userId = TokenHelper.getUserIdFromToken(accessToken);
         log.info("User {} đặt hàng - tổng tiền: {}", userId, userOrderInput.getTotalPrice());
 
+        applySavedOrManualAddress(userId, userOrderInput);
         UserOrderEntity userOrderEntity = userOrderMapper.getEntityFromInput(userOrderInput);
         userOrderEntity.setState(Common.PENDING_PAYMENT);
         userOrderEntity.setUserId(userId);
@@ -132,5 +134,31 @@ public class OrderService {
         order.setPendingCartIds(null);
         userOrderRepository.save(order);
         log.info("Auto hủy đơn #{} - khách rời trang thanh toán chưa chuyển khoản", orderId);
+    }
+    private void applySavedOrManualAddress(Long userId, UserOrderInput userOrderInput) {
+        if (Objects.nonNull(userOrderInput.getAddressId())) {
+            UserAddressEntity address = userAddressRepository.findByIdAndUserId(userOrderInput.getAddressId(), userId)
+                    .orElseThrow(() -> new BadRequestException(Common.ACTION_FAIL));
+            userOrderInput.setFullName(address.getFullName());
+            userOrderInput.setPhoneNumber(address.getPhoneNumber());
+            userOrderInput.setEmail(address.getEmail());
+            userOrderInput.setAddress(address.getAddress());
+            userOrderInput.setToDistrictId(address.getToDistrictId());
+            userOrderInput.setToWardCode(address.getToWardCode());
+            return;
+        }
+
+        if (!hasText(userOrderInput.getFullName())
+                || !hasText(userOrderInput.getPhoneNumber())
+                || !hasText(userOrderInput.getEmail())
+                || !hasText(userOrderInput.getAddress())
+                || Objects.isNull(userOrderInput.getToDistrictId())
+                || !hasText(userOrderInput.getToWardCode())) {
+            throw new BadRequestException(Common.ACTION_FAIL);
+        }
+    }
+
+    private boolean hasText(String value) {
+        return Objects.nonNull(value) && !value.trim().isEmpty();
     }
 }

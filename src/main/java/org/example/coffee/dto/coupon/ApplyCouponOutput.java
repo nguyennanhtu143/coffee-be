@@ -12,4 +12,6 @@ public class ApplyCouponOutput {
     private Integer originalPrice;
     private Integer discountAmount;
     private Integer finalPrice;
+    private Boolean freeShip;
+    private Integer maxShippingDiscount;
 }

@@ -23,6 +23,37 @@ public class UserController {
         return userService.signUp(signUpRequest);
     }
 
+    @Operation(summary = "Xac nhan OTP dang ky tai khoan")
+    @PostMapping("/verify-register-otp")
+    public String verifyRegisterOtp(@Valid @RequestBody VerifyRegisterOtpRequest request) {
+        return userService.verifyRegisterOtp(request);
+    }
+
+    @Operation(summary = "Gui lai OTP dang ky tai khoan")
+    @PostMapping("/resend-register-otp")
+    public String resendRegisterOtp(@Valid @RequestBody ResendRegisterOtpRequest request) {
+        return userService.resendRegisterOtp(request);
+    }
+
+    @Operation(summary = "Gui OTP quen mat khau")
+    @PostMapping("/forgot-password")
+    public String forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        return userService.forgotPassword(request);
+    }
+
+    @Operation(summary = "Dat lai mat khau bang OTP")
+    @PostMapping("/reset-password")
+    public String resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        return userService.resetPassword(request);
+    }
+
+    @Operation(summary = "Doi mat khau")
+    @PostMapping("/change-password")
+    public String changePassword(@RequestHeader("Authorization") String accessToken,
+                                 @Valid @RequestBody ChangePasswordRequest request) {
+        return userService.changePassword(accessToken, request);
+    }
+
     @Operation(summary = "Đăng nhập")
     @PostMapping("/log-in")
     public TokenResponse logIn(@Valid @RequestBody UserRequest logInRequest) {

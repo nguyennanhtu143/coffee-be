@@ -7,9 +7,12 @@ import org.example.coffee.dto.order.CancelOrderInput;
 import org.example.coffee.dto.order.ProductOrdersOutput;
 import org.example.coffee.service.order.ShopOrderService;
 import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDateTime;
 
 @RestController
 @AllArgsConstructor
@@ -22,8 +25,16 @@ public class ShopOrderController {
     @GetMapping("/get-orders")
     public Page<ProductOrdersOutput> getProductOrdersByState(@RequestHeader("Authorization") String accessToken,
                                                              @ParameterObject Pageable pageable,
-                                                             @RequestParam String state) {
-        return shopOrderService.getProductOrdersByState(accessToken, pageable, state);
+                                                             @RequestParam(required = false) String state,
+                                                             @RequestParam(required = false) Long orderId,
+                                                             @RequestParam(required = false) String phoneNumber,
+                                                             @RequestParam(required = false)
+                                                             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+                                                             LocalDateTime createdFrom,
+                                                             @RequestParam(required = false)
+                                                             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+                                                             LocalDateTime createdTo) {
+        return shopOrderService.getProductOrdersByState(accessToken, pageable, state, orderId, phoneNumber, createdFrom, createdTo);
     }
 
     @Operation(summary = "Xác nhận đơn hàng")

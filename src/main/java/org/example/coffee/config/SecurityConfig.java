@@ -27,7 +27,9 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 // Public endpoints - không cần đăng nhập
-                .requestMatchers("/api/v1/user/sign-up", "/api/v1/user/log-in").permitAll()
+                .requestMatchers("/api/v1/user/sign-up", "/api/v1/user/log-in",
+                        "/api/v1/user/verify-register-otp", "/api/v1/user/resend-register-otp",
+                        "/api/v1/user/forgot-password", "/api/v1/user/reset-password").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/product/get-products").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/product/get-products-by-category").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/product/get-details").permitAll()

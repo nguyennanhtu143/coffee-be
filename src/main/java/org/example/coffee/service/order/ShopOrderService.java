@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.coffee.common.Common;
 import org.example.coffee.dto.order.CancelOrderInput;
 import org.example.coffee.dto.order.ProductOrdersOutput;
+import org.example.coffee.entity.ProductOrderMapEntity;
 import org.example.coffee.entity.UserEntity;
 import org.example.coffee.entity.UserOrderEntity;
 import org.example.coffee.exceptionhandler.BadRequestException;
@@ -12,10 +13,16 @@ import org.example.coffee.exceptionhandler.ForbiddenException;
 import org.example.coffee.repository.*;
 import org.example.coffee.token.TokenHelper;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import java.util.List;
 
 @Slf4j
@@ -23,19 +30,27 @@ import java.util.List;
 @AllArgsConstructor
 public class ShopOrderService {
     private final UserOrderRepository userOrderRepository;
+    private final ProductOrderMapRepository productOrderMapRepository;
     private final CustomRepository customRepository;
     private final StateGeneration stateGeneration;
 
     @Transactional(readOnly = true)
     public Page<ProductOrdersOutput> getProductOrdersByState(String accessToken, Pageable pageable, String state) {
+        return getProductOrdersByState(accessToken, pageable, state, null, null, null, null);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ProductOrdersOutput> getProductOrdersByState(String accessToken, Pageable pageable, String state,
+                                                             Long orderId, String phoneNumber,
+                                                             LocalDateTime createdFrom, LocalDateTime createdTo) {
         Long shopId = TokenHelper.getUserIdFromToken(accessToken);
         UserEntity shopEntity = customRepository.getUserBy(shopId);
         if (shopEntity.getIsShop().equals(Boolean.FALSE)) {
             throw new ForbiddenException(Common.ACTION_FAIL);
         }
-        List<UserOrderEntity> userOrderEntities = userOrderRepository.findAllByState(state);
-        StateOrder stateOrder = stateGeneration.findSateBy(state);
-        return stateOrder.getOrders(userOrderEntities, pageable, state);
+        Page<UserOrderEntity> orders = userOrderRepository.searchAdminOrders(
+                normalizeState(state), orderId, normalizeSearch(phoneNumber), createdFrom, createdTo, pageable);
+        return buildOrderOutputs(orders, pageable);
     }
 
     @Transactional
@@ -111,5 +126,52 @@ public class ShopOrderService {
         userOrderEntity.setCancelerId(shopId);
         userOrderEntity.setReasonCancellation(cancelOrderInput.getReason());
         userOrderRepository.save(userOrderEntity);
+    }
+
+    private Page<ProductOrdersOutput> buildOrderOutputs(Page<UserOrderEntity> orders, Pageable pageable) {
+        if (Objects.isNull(orders) || orders.isEmpty()) {
+            return Page.empty(pageable);
+        }
+
+        List<Long> orderIds = orders.stream().map(UserOrderEntity::getId).collect(Collectors.toList());
+        Map<Long, List<ProductOrderMapEntity>> productMap = productOrderMapRepository.findAllByOrderIdIn(orderIds)
+                .stream().collect(Collectors.groupingBy(ProductOrderMapEntity::getOrderId));
+        List<ProductOrdersOutput> outputs = new ArrayList<>();
+
+        for (UserOrderEntity order : orders) {
+            List<ProductOrderMapEntity> productOrders = productMap.getOrDefault(order.getId(), List.of());
+            List<org.example.coffee.dto.order.ProductOrderOutput> productOutputs = new ArrayList<>();
+            int totalPrice = 0;
+            for (ProductOrderMapEntity productOrder : productOrders) {
+                org.example.coffee.dto.order.ProductOrderOutput output = org.example.coffee.dto.order.ProductOrderOutput.builder()
+                        .productSizeId(productOrder.getProductSizeId())
+                        .productName(productOrder.getNameProduct())
+                        .size(productOrder.getSize())
+                        .image(productOrder.getImage())
+                        .quantityOrder(productOrder.getQuantityOrder())
+                        .price(productOrder.getPrice())
+                        .totalPrice(productOrder.getTotalPrice())
+                        .build();
+                totalPrice += productOrder.getTotalPrice();
+                productOutputs.add(output);
+            }
+
+            outputs.add(ProductOrdersOutput.builder()
+                    .orderId(order.getId())
+                    .productOrderOutputs(productOutputs)
+                    .state(order.getState())
+                    .totalPrice(totalPrice)
+                    .build());
+        }
+
+        return new PageImpl<>(outputs, pageable, orders.getTotalElements());
+    }
+
+    private String normalizeState(String state) {
+        return Objects.isNull(state) || state.trim().isEmpty() ? null : state.trim();
+    }
+
+    private String normalizeSearch(String value) {
+        return Objects.isNull(value) || value.trim().isEmpty() ? null : value.trim();
     }
 }

@@ -17,7 +17,7 @@ public class PaymentController {
     private final PaymentService paymentService;
 
     @Operation(summary = "Thanh toán - trả về thông tin chuyển khoản (JSON) hoặc SUCCESS nếu tiền mặt")
-    @PostMapping()
+    @PostMapping(produces = "text/plain")
     public ResponseEntity<String> processPayment(@RequestHeader("Authorization") String accessToken,
                                                  @RequestParam Long orderId,
                                                  @RequestParam String method,

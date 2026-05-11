@@ -11,7 +11,11 @@ import java.util.Set;
 public interface UserRepository extends JpaRepository<UserEntity, Long> {
     boolean existsByUsername(String username);
 
+    boolean existsByEmail(String email);
+
     UserEntity findByUsername(String username);
+
+    UserEntity findByEmail(String email);
 
     List<UserEntity> findAllByIdIn(Set<Long> userIds);
 }

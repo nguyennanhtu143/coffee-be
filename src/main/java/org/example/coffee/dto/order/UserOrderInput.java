@@ -16,33 +16,23 @@ import java.util.List;
 @Setter
 @Getter
 public class UserOrderInput {
-    @NotBlank(message = "Họ tên không được để trống")
     private String fullName;
-
-    @NotBlank(message = "Số điện thoại không được để trống")
     private String phoneNumber;
-
-    @NotBlank(message = "Email không được để trống")
     private String email;
-
-    @NotBlank(message = "Địa chỉ không được để trống")
     private String address;
 
-    @NotBlank(message = "Phương thức thanh toán không được để trống")
+    @NotBlank(message = "Payment method khong duoc de trong")
     private String paymentMethod;
 
-    @NotEmpty(message = "Danh sách sản phẩm không được rỗng")
+    @NotEmpty(message = "Danh sach san pham khong duoc rong")
     @Valid
     private List<ProductOrderInput> productOrderInputs;
 
-    @NotNull(message = "Tổng giá không được để trống")
+    @NotNull(message = "Tong gia khong duoc de trong")
     private Integer totalPrice;
 
-    @NotNull(message = "Mã khu vực không được để trống")
     private Integer toDistrictId;
-
-    @NotBlank(message = "Mã phường/xã không được để trống")
     private String toWardCode;
-
     private Integer shippingFee;
+    private Long addressId;
 }

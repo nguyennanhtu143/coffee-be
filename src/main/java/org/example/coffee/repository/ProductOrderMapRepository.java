@@ -13,6 +13,8 @@ import java.util.List;
 public interface ProductOrderMapRepository extends JpaRepository<ProductOrderMapEntity, Long> {
     Page<ProductOrderMapEntity> findAllByOrderIdIn(List<Long> orderId, Pageable pageable);
 
+    List<ProductOrderMapEntity> findAllByOrderIdIn(List<Long> orderId);
+
     List<ProductOrderMapEntity> findAllByOrderId(Long orderId);
 
     @Query("SELECT p.nameProduct, p.image, p.size, SUM(p.quantityOrder), SUM(p.totalPrice) " +

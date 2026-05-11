@@ -97,8 +97,13 @@ public class CouponService {
             throw new BadRequestException("Đơn hàng tối thiểu " + coupon.getMinOrderValue() + " để áp dụng mã này");
         }
 
-        int discountAmount;
-        if ("PERCENTAGE".equals(coupon.getDiscountType())) {
+        boolean isFreeShip = "FREE_SHIP".equals(coupon.getDiscountType());
+        int discountAmount = 0;
+
+        if (isFreeShip) {
+            // FREE_SHIP: không giảm giá sản phẩm, chỉ miễn phí ship
+            discountAmount = 0;
+        } else if ("PERCENTAGE".equals(coupon.getDiscountType())) {
             discountAmount = orderTotal * coupon.getDiscountValue() / 100;
             if (coupon.getMaxDiscount() != null && discountAmount > coupon.getMaxDiscount()) {
                 discountAmount = coupon.getMaxDiscount();
@@ -119,6 +124,8 @@ public class CouponService {
                 .originalPrice(orderTotal)
                 .discountAmount(discountAmount)
                 .finalPrice(orderTotal - discountAmount)
+                .freeShip(isFreeShip)
+                .maxShippingDiscount(isFreeShip ? coupon.getMaxDiscount() : null)
                 .build();
     }
 

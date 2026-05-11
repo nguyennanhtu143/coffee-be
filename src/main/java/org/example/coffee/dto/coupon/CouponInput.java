@@ -21,7 +21,7 @@ public class CouponInput {
     private String discountType;
 
     @NotNull(message = "Giá trị giảm không được để trống")
-    @Min(value = 1, message = "Giá trị giảm phải lớn hơn 0")
+    @Min(value = 0, message = "Giá trị giảm phải >= 0")
     private Integer discountValue;
 
     private Integer maxDiscount;
