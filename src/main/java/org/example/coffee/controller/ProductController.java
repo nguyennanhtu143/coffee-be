@@ -123,8 +123,9 @@ public class ProductController {
                                                 @RequestParam(value = "categoryId", required = false) Long categoryId,
                                                 @RequestParam(value = "sortBy", defaultValue = "createdAt") String sortBy,
                                                 @RequestParam(value = "direction", defaultValue = "desc") String direction,
+                                                @RequestParam(value = "size", required = false) Integer size,
                                                 @ParameterObject Pageable pageable) {
-        return productService.getAdminProducts(accessToken, search, categoryId, sortBy, direction, pageable);
+        return productService.getAdminProducts(accessToken, search, categoryId, sortBy, direction, size, pageable);
     }
 
     @Operation(summary = "Lay cau hinh so san pham moi trang")

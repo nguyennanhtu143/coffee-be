@@ -24,9 +24,9 @@ public interface ProductRepository extends JpaRepository<ProductEntity, Long> {
 	@Query("SELECT u FROM ProductEntity u WHERE LOWER(u.name) LIKE LOWER(CONCAT('%', :search, '%'))")
 	Page<ProductEntity> searchProductEntitiesByString(@Param("search") String search, Pageable pageable);
 
-	@Query("""
+	@Query(value = """
 			SELECT p FROM ProductEntity p
-			WHERE (:search IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :search, '%')))
+			WHERE LOWER(p.name) LIKE LOWER(CONCAT('%', :search, '%'))
 			AND (:categoryId IS NULL OR p.id IN (
 				SELECT pcm.productId FROM ProductCategoryMapEntity pcm WHERE pcm.categoryId = :categoryId
 			))
@@ -42,6 +42,15 @@ public interface ProductRepository extends JpaRepository<ProductEntity, Long> {
 				SELECT MIN(ps.price) FROM ProductSizeEntity ps WHERE ps.productId = p.id
 			) END DESC,
 			p.createdAt DESC
+			""",
+			countQuery = """
+			SELECT COUNT(p) FROM ProductEntity p
+			WHERE LOWER(p.name) LIKE LOWER(CONCAT('%', :search, '%'))
+			AND (:categoryId IS NULL OR p.id IN (
+				SELECT pcm.productId FROM ProductCategoryMapEntity pcm WHERE pcm.categoryId = :categoryId
+			))
+			AND :sortBy = :sortBy
+			AND :direction = :direction
 			""")
 	Page<ProductEntity> searchAdminProducts(@Param("search") String search,
 											@Param("categoryId") Long categoryId,

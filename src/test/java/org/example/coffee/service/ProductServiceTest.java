@@ -2,6 +2,7 @@ package org.example.coffee.service;
 
 import org.example.coffee.common.ProductSite;
 import org.example.coffee.entity.ProductEntity;
+import org.example.coffee.entity.UserEntity;
 import org.example.coffee.mapper.ProductMapper;
 import org.example.coffee.repository.CommentRepository;
 import org.example.coffee.repository.CustomRepository;
@@ -26,6 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.mockStatic;
 
 @ExtendWith(MockitoExtension.class)
 class ProductServiceTest {
@@ -90,6 +92,37 @@ class ProductServiceTest {
                 pageableCaptor.capture());
         assertEquals(1, pageableCaptor.getValue().getPageNumber());
         assertEquals(30, pageableCaptor.getValue().getPageSize());
+    }
+
+    @Test
+    void getAdminProducts_withoutSize_usesConfiguredAdminPageSize() {
+        Pageable inputPageable = PageRequest.of(0, 20);
+        try (org.mockito.MockedStatic<org.example.coffee.token.TokenHelper> tokenHelperMock =
+                     mockStatic(org.example.coffee.token.TokenHelper.class)) {
+            tokenHelperMock.when(() -> org.example.coffee.token.TokenHelper.getUserIdFromToken("Bearer token"))
+                    .thenReturn(1L);
+            when(customRepository.getUserBy(1L)).thenReturn(UserEntity.builder().id(1L).isShop(Boolean.TRUE).build());
+            when(productPageConfigService.resolvePageSize(ProductSite.ADMIN, null)).thenReturn(5);
+            when(productRepository.searchAdminProducts(
+                    org.mockito.ArgumentMatchers.eq(""),
+                    org.mockito.ArgumentMatchers.isNull(),
+                    org.mockito.ArgumentMatchers.eq("createdAt"),
+                    org.mockito.ArgumentMatchers.eq("desc"),
+                    org.mockito.ArgumentMatchers.any(Pageable.class)))
+                    .thenReturn(new PageImpl<>(List.of(product()), inputPageable, 1));
+            when(productSizeRepository.findAllByProductIdIn(anyList())).thenReturn(List.of());
+
+            productService.getAdminProducts("Bearer token", null, null, "createdAt", "desc", null, inputPageable);
+
+            ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
+            verify(productRepository).searchAdminProducts(
+                    org.mockito.ArgumentMatchers.eq(""),
+                    org.mockito.ArgumentMatchers.isNull(),
+                    org.mockito.ArgumentMatchers.eq("createdAt"),
+                    org.mockito.ArgumentMatchers.eq("desc"),
+                    pageableCaptor.capture());
+            assertEquals(5, pageableCaptor.getValue().getPageSize());
+        }
     }
 
     private ProductEntity product() {

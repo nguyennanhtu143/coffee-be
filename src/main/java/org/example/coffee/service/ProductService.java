@@ -206,7 +206,7 @@ public class ProductService {
 
     @Transactional(readOnly = true)
     public Page<ProductOutput> getAdminProducts(String accessToken, String search, Long categoryId,
-                                                String sortBy, String direction, Pageable pageable) {
+                                                String sortBy, String direction, Integer requestedSize, Pageable pageable) {
         Long userId = TokenHelper.getUserIdFromToken(accessToken);
         UserEntity userEntity = customRepository.getUserBy(userId);
         if (userEntity.getIsShop().equals(Boolean.FALSE)) {
@@ -215,8 +215,9 @@ public class ProductService {
 
         String resolvedSortBy = normalizeProductSortBy(sortBy);
         String resolvedDirection = "asc".equalsIgnoreCase(direction) ? "asc" : "desc";
+        Pageable resolvedPageable = resolveProductPageable(ProductSite.ADMIN, requestedSize, pageable);
         Page<ProductEntity> productEntities = productRepository.searchAdminProducts(
-                normalizeSearch(search), categoryId, resolvedSortBy, resolvedDirection, pageable);
+                normalizeSearch(search), categoryId, resolvedSortBy, resolvedDirection, resolvedPageable);
         if (Objects.isNull(productEntities) || productEntities.isEmpty()) {
             return Page.empty();
         }
@@ -241,7 +242,7 @@ public class ProductService {
     }
 
     private String normalizeSearch(String search) {
-        return Objects.isNull(search) || search.trim().isEmpty() ? null : search.trim();
+        return Objects.isNull(search) ? "" : search.trim();
     }
 
     private ProductOutput buildProductOutput(ProductEntity productEntity, List<ProductSizeEntity> sizes) {

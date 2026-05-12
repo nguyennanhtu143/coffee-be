@@ -13,7 +13,8 @@ Query params:
 - `categoryId`: category id.
 - `sortBy`: `createdAt`, `name`, `price`.
 - `direction`: `asc`, `desc`.
-- `page`, `size`.
+- `page`.
+- `size`: optional. If omitted, backend uses Admin product page-size config from `/api/v1/product/page-config`; if provided, it overrides the config.
 
 Examples:
 
@@ -21,6 +22,7 @@ Examples:
 GET /api/v1/product/admin-products?search=latte&page=0&size=20
 GET /api/v1/product/admin-products?categoryId=2&sortBy=price&direction=asc&page=0&size=20
 GET /api/v1/product/admin-products?sortBy=name&direction=desc&page=0&size=20
+GET /api/v1/product/admin-products?page=0&sortBy=createdAt&direction=desc
 ```
 
 Response is `Page<ProductOutput>`.

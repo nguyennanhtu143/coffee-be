@@ -15,14 +15,24 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ShopOrderServiceTest {
 
     @Mock private UserOrderRepository userOrderRepository;
+    @Mock private ProductOrderMapRepository productOrderMapRepository;
     @Mock private CustomRepository customRepository;
     @Mock private StateGeneration stateGeneration;
 
@@ -31,6 +41,38 @@ class ShopOrderServiceTest {
 
     private static final Long SHOP_ID = 1L;
     private static final String ACCESS_TOKEN = "Bearer shop-token";
+
+    @Test
+    @DisplayName("Láº¥y danh sÃ¡ch Ä‘Æ¡n hÃ ng admin báº±ng Specification")
+    void getProductOrdersByState_usesSpecification() {
+        try (MockedStatic<TokenHelper> tokenHelperMock = mockStatic(TokenHelper.class)) {
+            tokenHelperMock.when(() -> TokenHelper.getUserIdFromToken(ACCESS_TOKEN)).thenReturn(SHOP_ID);
+
+            Pageable pageable = PageRequest.of(0, 20);
+            UserEntity shopEntity = UserEntity.builder().id(SHOP_ID).isShop(Boolean.TRUE).build();
+            UserOrderEntity order = UserOrderEntity.builder()
+                    .id(1L)
+                    .state(Common.CONFIRMED)
+                    .phoneNumber("090")
+                    .createdAt(LocalDateTime.of(2026, 5, 12, 0, 0))
+                    .build();
+            when(customRepository.getUserBy(SHOP_ID)).thenReturn(shopEntity);
+            when(userOrderRepository.findAll(any(Specification.class), eq(pageable)))
+                    .thenReturn(new PageImpl<>(List.of(order), pageable, 1));
+            when(productOrderMapRepository.findAllByOrderIdIn(List.of(1L))).thenReturn(List.of());
+
+            shopOrderService.getProductOrdersByState(
+                    ACCESS_TOKEN,
+                    pageable,
+                    Common.CONFIRMED,
+                    1L,
+                    "090",
+                    LocalDateTime.of(2026, 5, 1, 0, 0),
+                    LocalDateTime.of(2026, 5, 15, 23, 59));
+
+            verify(userOrderRepository).findAll(any(Specification.class), eq(pageable));
+        }
+    }
 
     @Test
     @DisplayName("Shop xác nhận đơn hàng: PENDING_PAYMENT -> CONFIRMED")

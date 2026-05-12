@@ -11,6 +11,7 @@ import org.example.coffee.entity.UserOrderEntity;
 import org.example.coffee.exceptionhandler.BadRequestException;
 import org.example.coffee.exceptionhandler.ForbiddenException;
 import org.example.coffee.repository.*;
+import org.example.coffee.repository.specification.UserOrderSpecifications;
 import org.example.coffee.token.TokenHelper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -48,8 +49,9 @@ public class ShopOrderService {
         if (shopEntity.getIsShop().equals(Boolean.FALSE)) {
             throw new ForbiddenException(Common.ACTION_FAIL);
         }
-        Page<UserOrderEntity> orders = userOrderRepository.searchAdminOrders(
-                normalizeState(state), orderId, normalizeSearch(phoneNumber), createdFrom, createdTo, pageable);
+        Page<UserOrderEntity> orders = userOrderRepository.findAll(
+                UserOrderSpecifications.adminOrders(state, orderId, phoneNumber, createdFrom, createdTo),
+                pageable);
         return buildOrderOutputs(orders, pageable);
     }
 
@@ -167,11 +169,4 @@ public class ShopOrderService {
         return new PageImpl<>(outputs, pageable, orders.getTotalElements());
     }
 
-    private String normalizeState(String state) {
-        return Objects.isNull(state) || state.trim().isEmpty() ? null : state.trim();
-    }
-
-    private String normalizeSearch(String value) {
-        return Objects.isNull(value) || value.trim().isEmpty() ? null : value.trim();
-    }
 }
