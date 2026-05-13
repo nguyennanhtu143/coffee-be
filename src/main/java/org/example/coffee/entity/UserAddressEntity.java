@@ -29,8 +29,12 @@ public class UserAddressEntity {
     private String phoneNumber;
     private String email;
     private String address;
+    private Integer provinceId;
+    private String provinceName;
     private Integer toDistrictId;
+    private String districtName;
     private String toWardCode;
+    private String wardName;
     private Boolean isDefault;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

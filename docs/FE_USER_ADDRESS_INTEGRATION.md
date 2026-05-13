@@ -11,8 +11,12 @@ All address APIs require `Authorization: Bearer <token>`.
   "phoneNumber": "0900000000",
   "email": "user@example.com",
   "address": "So 1, Duong A",
+  "provinceId": 202,
+  "provinceName": "Ho Chi Minh",
   "toDistrictId": 1542,
+  "districtName": "Quan 1",
   "toWardCode": "1B1515",
+  "wardName": "Phuong Ben Nghe",
   "isDefault": true
 }
 ```
@@ -36,8 +40,12 @@ Create/update body:
   "phoneNumber": "0900000000",
   "email": "user@example.com",
   "address": "So 1, Duong A",
+  "provinceId": 202,
+  "provinceName": "Ho Chi Minh",
   "toDistrictId": 1542,
+  "districtName": "Quan 1",
   "toWardCode": "1B1515",
+  "wardName": "Phuong Ben Nghe",
   "isDefault": true
 }
 ```
@@ -66,5 +74,9 @@ Manual checkout without `addressId` still works, but FE must send:
 - `phoneNumber`
 - `email`
 - `address`
+- `provinceId`
+- `provinceName`
 - `toDistrictId`
+- `districtName`
 - `toWardCode`
+- `wardName`

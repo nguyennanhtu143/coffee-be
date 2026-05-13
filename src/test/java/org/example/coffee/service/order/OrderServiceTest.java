@@ -64,8 +64,12 @@ class OrderServiceTest {
             input.setPaymentMethod("cash");
             input.setProductOrderInputs(List.of(productOrderInput));
             input.setTotalPrice(100000);
+            input.setProvinceId(202);
+            input.setProvinceName("Ho Chi Minh");
             input.setToDistrictId(1542);
+            input.setDistrictName("Quan 1");
             input.setToWardCode("1B1515");
+            input.setWardName("Phuong Ben Nghe");
 
             UserOrderEntity orderEntity = UserOrderEntity.builder().id(1L).totalPrice(100000).build();
             when(userOrderMapper.getEntityFromInput(input)).thenReturn(orderEntity);

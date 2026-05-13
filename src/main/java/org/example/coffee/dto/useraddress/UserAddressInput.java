@@ -22,11 +22,23 @@ public class UserAddressInput {
     @NotBlank(message = "Địa chỉ không được để trống")
     private String address;
 
+    @NotNull(message = "Ma tinh/thanh pho khong duoc de trong")
+    private Integer provinceId;
+
+    @NotBlank(message = "Ten tinh/thanh pho khong duoc de trong")
+    private String provinceName;
+
     @NotNull(message = "Mã khu vực không được để trống")
     private Integer toDistrictId;
 
+    @NotBlank(message = "Ten quan/huyen khong duoc de trong")
+    private String districtName;
+
     @NotBlank(message = "Mã phường/xã không được để trống")
     private String toWardCode;
+
+    @NotBlank(message = "Ten phuong/xa khong duoc de trong")
+    private String wardName;
 
     private Boolean isDefault;
 }

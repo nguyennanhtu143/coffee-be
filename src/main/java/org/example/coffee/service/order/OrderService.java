@@ -143,8 +143,12 @@ public class OrderService {
             userOrderInput.setPhoneNumber(address.getPhoneNumber());
             userOrderInput.setEmail(address.getEmail());
             userOrderInput.setAddress(address.getAddress());
+            userOrderInput.setProvinceId(address.getProvinceId());
+            userOrderInput.setProvinceName(address.getProvinceName());
             userOrderInput.setToDistrictId(address.getToDistrictId());
+            userOrderInput.setDistrictName(address.getDistrictName());
             userOrderInput.setToWardCode(address.getToWardCode());
+            userOrderInput.setWardName(address.getWardName());
             return;
         }
 
@@ -152,8 +156,12 @@ public class OrderService {
                 || !hasText(userOrderInput.getPhoneNumber())
                 || !hasText(userOrderInput.getEmail())
                 || !hasText(userOrderInput.getAddress())
+                || Objects.isNull(userOrderInput.getProvinceId())
+                || !hasText(userOrderInput.getProvinceName())
                 || Objects.isNull(userOrderInput.getToDistrictId())
-                || !hasText(userOrderInput.getToWardCode())) {
+                || !hasText(userOrderInput.getDistrictName())
+                || !hasText(userOrderInput.getToWardCode())
+                || !hasText(userOrderInput.getWardName())) {
             throw new BadRequestException(Common.ACTION_FAIL);
         }
     }

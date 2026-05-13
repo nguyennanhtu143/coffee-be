@@ -31,8 +31,12 @@ public class UserOrderInput {
     @NotNull(message = "Tong gia khong duoc de trong")
     private Integer totalPrice;
 
+    private Integer provinceId;
+    private String provinceName;
     private Integer toDistrictId;
+    private String districtName;
     private String toWardCode;
+    private String wardName;
     private Integer shippingFee;
     private Long addressId;
 }

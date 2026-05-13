@@ -50,8 +50,12 @@ public class UserAddressService {
                 .phoneNumber(input.getPhoneNumber())
                 .email(input.getEmail())
                 .address(input.getAddress())
+                .provinceId(input.getProvinceId())
+                .provinceName(input.getProvinceName())
                 .toDistrictId(input.getToDistrictId())
+                .districtName(input.getDistrictName())
                 .toWardCode(input.getToWardCode())
+                .wardName(input.getWardName())
                 .isDefault(isDefault)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
@@ -74,8 +78,12 @@ public class UserAddressService {
         address.setPhoneNumber(input.getPhoneNumber());
         address.setEmail(input.getEmail());
         address.setAddress(input.getAddress());
+        address.setProvinceId(input.getProvinceId());
+        address.setProvinceName(input.getProvinceName());
         address.setToDistrictId(input.getToDistrictId());
+        address.setDistrictName(input.getDistrictName());
         address.setToWardCode(input.getToWardCode());
+        address.setWardName(input.getWardName());
         address.setUpdatedAt(LocalDateTime.now());
         return buildOutput(userAddressRepository.save(address));
     }
@@ -118,8 +126,12 @@ public class UserAddressService {
                 .phoneNumber(address.getPhoneNumber())
                 .email(address.getEmail())
                 .address(address.getAddress())
+                .provinceId(address.getProvinceId())
+                .provinceName(address.getProvinceName())
                 .toDistrictId(address.getToDistrictId())
+                .districtName(address.getDistrictName())
                 .toWardCode(address.getToWardCode())
+                .wardName(address.getWardName())
                 .isDefault(address.getIsDefault())
                 .build();
     }

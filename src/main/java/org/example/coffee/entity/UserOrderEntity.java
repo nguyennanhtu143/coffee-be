@@ -30,8 +30,12 @@ public class UserOrderEntity {
     private String pendingCartIds;
 
     // GHN shipping fields
+    private Integer provinceId;
+    private String provinceName;
     private Integer toDistrictId;
+    private String districtName;
     private String toWardCode;
+    private String wardName;
     private String ghnOrderCode;
     private Integer shippingFee;
     private String shippingStatus;
