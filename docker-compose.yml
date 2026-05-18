@@ -7,15 +7,17 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    environment:
-      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
-      DATABASE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-Coffees}
-      DATABASE_USERNAME: ${POSTGRES_USER:-postgres}
-      DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
+#    environment:
+#      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
+#      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-Coffees}
+#      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
+#      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+#      REDIS_HOST: redis
+#      REDIS_PORT: 6379
+    env_file:
+      - .env
     ports:
-      - "${APP_PORT:-8080}:8080"
+      - "${APP_PORT:-8081}:8080"
     restart: unless-stopped
 
   postgres:
