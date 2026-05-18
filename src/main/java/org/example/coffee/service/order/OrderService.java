@@ -37,7 +37,7 @@ public class OrderService {
         Long userId = TokenHelper.getUserIdFromToken(accessToken);
         log.info("User {} đặt hàng - tổng tiền: {}", userId, userOrderInput.getTotalPrice());
 
-        applySavedOrManualAddress(userId, userOrderInput);
+//        applySavedOrManualAddress(userId, userOrderInput);
         UserOrderEntity userOrderEntity = userOrderMapper.getEntityFromInput(userOrderInput);
         userOrderEntity.setState(Common.PENDING_PAYMENT);
         userOrderEntity.setUserId(userId);
