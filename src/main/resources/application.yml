@@ -1,6 +1,6 @@
 spring:
   config:
-    import: optional:dotenv:
+    import: "optional:dotenv:"
   application:
     name: coffee
 
