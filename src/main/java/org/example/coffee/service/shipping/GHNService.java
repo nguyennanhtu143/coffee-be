@@ -76,6 +76,12 @@ public class GHNService {
     public JsonNode createShippingOrder(UserOrderEntity order, boolean isCOD) {
         ObjectNode body = objectMapper.createObjectNode();
 
+				body.put("from_name", ghnConfig.getFromName());
+				body.put("from_phone", ghnConfig.getFromPhone());
+				body.put("from_address", ghnConfig.getFromAddress());
+				body.put("from_district_id", ghnConfig.getFromDistrictId());
+				body.put("from_ward_code", ghnConfig.getFromWardCode());
+
         // Receiver info
         body.put("to_name", order.getFullName());
         body.put("to_phone", order.getPhoneNumber());
