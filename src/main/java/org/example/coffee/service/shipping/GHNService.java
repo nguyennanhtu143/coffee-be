@@ -155,6 +155,7 @@ public class GHNService {
                 requestBuilder.GET();
             } else {
                 String bodyStr = body != null ? objectMapper.writeValueAsString(body) : "{}";
+								log.info("GHN Request Body: {}", bodyStr);
                 requestBuilder.POST(HttpRequest.BodyPublishers.ofString(bodyStr));
             }
 
