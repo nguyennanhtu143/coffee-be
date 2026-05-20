@@ -116,6 +116,8 @@ public class GHNService {
         items.add(item);
         body.set("items", items);
 
+				log.info("Dữ liệu gửi GHN dạng chuẩn:\n{}", body.toPrettyString());
+
         return callGHN("POST", "/shiip/public-api/v2/shipping-order/create", body, true);
     }
 
