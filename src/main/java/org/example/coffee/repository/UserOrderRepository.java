@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface UserOrderRepository extends JpaRepository<UserOrderEntity, Long>, JpaSpecificationExecutor<UserOrderEntity> {
@@ -30,5 +31,32 @@ public interface UserOrderRepository extends JpaRepository<UserOrderEntity, Long
     @Query("SELECT COUNT(o) FROM UserOrderEntity o WHERE o.state = 'COMPLETED' AND o.createdAt BETWEEN :start AND :end")
     Long countOrdersByDateRange(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 
-    UserOrderEntity findByGhnOrderCode(String ghnOrderCode);
+    Optional<UserOrderEntity> findByGhnOrderCode(String ghnOrderCode);
+
+    List<UserOrderEntity> findTop5ByUserIdOrderByCreatedAtDesc(Long userId);
+
+    List<UserOrderEntity> findByStateIn(List<String> states);
+
+    @Query("SELECT COUNT(o) FROM UserOrderEntity o WHERE o.state = :state AND o.createdAt BETWEEN :start AND :end")
+    Long countByStateAndDateRange(@Param("state") String state,
+                                  @Param("start") LocalDateTime start,
+                                  @Param("end") LocalDateTime end);
+
+    @Query("SELECT COUNT(o) FROM UserOrderEntity o WHERE o.createdAt BETWEEN :start AND :end")
+    Long countAllByDateRange(@Param("start") LocalDateTime start,
+                             @Param("end") LocalDateTime end);
+
+    /**
+     * Đếm số đơn theo từng trạng thái của một user.
+     * Trả về List<Object[]> với mỗi phần tử là [state (String), count (Long)].
+     * Dùng cho chatbot để trả lời chính xác "Tôi có mấy đơn đang giao?" v.v.
+     */
+    @Query("SELECT o.state, COUNT(o) FROM UserOrderEntity o WHERE o.userId = :userId GROUP BY o.state")
+    List<Object[]> countByStateForUser(@Param("userId") Long userId);
+
+    /**
+     * Lấy danh sách đơn đang hoạt động (chưa kết thúc) của user theo nhiều state.
+     * Dùng để liệt kê mã đơn cụ thể cho chatbot tham chiếu.
+     */
+    List<UserOrderEntity> findByUserIdAndStateInOrderByCreatedAtDesc(Long userId, List<String> states);
 }

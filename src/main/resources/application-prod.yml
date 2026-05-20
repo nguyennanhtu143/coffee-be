@@ -61,3 +61,7 @@ ghn:
 
 chatbot:
   api-key: ${CHATBOT_API_KEY}
+  model: ${CHATBOT_MODEL:gemini-2.0-flash}
+  base-url: ${CHATBOT_BASE_URL:https://generativelanguage.googleapis.com}
+  max-output-tokens: ${CHATBOT_MAX_OUTPUT_TOKENS:500}
+  temperature: ${CHATBOT_TEMPERATURE:0.6}

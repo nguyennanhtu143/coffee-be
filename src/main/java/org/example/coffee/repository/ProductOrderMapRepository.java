@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -17,14 +18,21 @@ public interface ProductOrderMapRepository extends JpaRepository<ProductOrderMap
 
     List<ProductOrderMapEntity> findAllByOrderId(Long orderId);
 
+    /**
+     * Top sản phẩm bán chạy — chỉ tính từ đơn đã HOÀN THÀNH (state = 'COMPLETED').
+     * Không tính đơn hủy, đơn đang xử lý, v.v.
+     */
     @Query("SELECT p.nameProduct, p.image, p.size, SUM(p.quantityOrder), SUM(p.totalPrice) " +
-            "FROM ProductOrderMapEntity p GROUP BY p.nameProduct, p.image, p.size " +
+            "FROM ProductOrderMapEntity p " +
+            "JOIN UserOrderEntity o ON p.orderId = o.id " +
+            "WHERE o.state = 'COMPLETED' " +
+            "GROUP BY p.nameProduct, p.image, p.size " +
             "ORDER BY SUM(p.quantityOrder) DESC")
     List<Object[]> findTopSellingProducts(Pageable pageable);
 
     @Query("SELECT COUNT(p) > 0 FROM ProductOrderMapEntity p " +
             "JOIN UserOrderEntity o ON p.orderId = o.id " +
             "WHERE o.userId = :userId AND p.productSizeId = :productSizeId AND o.state = 'COMPLETED'")
-    Boolean existsPurchase(@org.springframework.data.repository.query.Param("userId") Long userId,
-                           @org.springframework.data.repository.query.Param("productSizeId") Long productSizeId);
+    Boolean existsPurchase(@Param("userId") Long userId,
+                           @Param("productSizeId") Long productSizeId);
 }

@@ -60,10 +60,10 @@ public class ShippingController {
         return ResponseEntity.ok(shippingService.cancelShipping(accessToken, orderId));
     }
 
-    @Operation(summary = "GHN webhook - nhận cập nhật trạng thái giao hàng")
-    @PostMapping("/ghn-webhook")
-    public ResponseEntity<String> ghnWebhook(@RequestBody JsonNode body) {
-        shippingService.handleGHNWebhook(body);
-        return ResponseEntity.ok("OK");
-    }
+//    @Operation(summary = "GHN webhook - nhận cập nhật trạng thái giao hàng")
+//    @PostMapping("/ghn-webhook")
+//    public ResponseEntity<String> ghnWebhook(@RequestBody JsonNode body) {
+//        shippingService.handleGHNWebhook(body);
+//        return ResponseEntity.ok("OK");
+//    }
 }

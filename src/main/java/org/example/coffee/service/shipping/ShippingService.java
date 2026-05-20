@@ -181,70 +181,70 @@ public class ShippingService {
 
     // ==================== GHN WEBHOOK ====================
 
-    @Transactional
-    public void handleGHNWebhook(JsonNode body) {
-        try {
-            String ghnOrderCode = body.has("OrderCode") ? body.get("OrderCode").asText() : null;
-            String status = body.has("Status") ? body.get("Status").asText() : null;
-
-            if (ghnOrderCode == null || status == null) {
-                log.warn("GHN webhook - thiếu OrderCode hoặc Status");
-                return;
-            }
-
-            log.info("GHN webhook - {} - status: {}", ghnOrderCode, status);
-
-            // Tìm đơn hàng theo ghnOrderCode
-            UserOrderEntity order = userOrderRepository.findByGhnOrderCode(ghnOrderCode);
-            if (order == null) {
-                log.warn("GHN webhook - không tìm thấy đơn cho mã: {}", ghnOrderCode);
-                return;
-            }
-
-            order.setShippingStatus(status);
-
-            // Map GHN status → hệ thống state
-            switch (status) {
-                case "ready_to_pick":
-                case "picking":
-                case "picked":
-                case "storing":
-                case "transporting":
-                case "sorting":
-                    order.setState(Common.SHIPPING);
-                    break;
-                case "delivering":
-                    order.setState(Common.DELIVERING);
-                    break;
-                case "delivered":
-                    order.setState(Common.COMPLETED);
-                    log.info("Đơn #{} - GHN giao thành công", order.getId());
-                    break;
-                case "delivery_fail":
-                    order.setState(Common.DELIVERY_FAILED);
-                    break;
-                case "waiting_to_return":
-                case "return":
-                case "return_transporting":
-                case "return_sorting":
-                case "returning":
-                    order.setState(Common.RETURNING);
-                    break;
-                case "returned":
-                    order.setState(Common.RETURNED);
-                    break;
-                case "cancel":
-                    order.setState(Common.CANCELED);
-                    order.setReasonCancellation("GHN hủy đơn");
-                    break;
-                default:
-                    log.warn("GHN webhook - trạng thái không xử lý: {}", status);
-                    break;
-            }
-
-            userOrderRepository.save(order);
-        } catch (Exception e) {
-            log.error("GHN webhook error: {}", e.getMessage());
-        }
-    }
+//    @Transactional
+//    public void handleGHNWebhook(JsonNode body) {
+//        try {
+//            String ghnOrderCode = body.has("OrderCode") ? body.get("OrderCode").asText() : null;
+//            String status = body.has("Status") ? body.get("Status").asText() : null;
+//
+//            if (ghnOrderCode == null || status == null) {
+//                log.warn("GHN webhook - thiếu OrderCode hoặc Status");
+//                return;
+//            }
+//
+//            log.info("GHN webhook - {} - status: {}", ghnOrderCode, status);
+//
+//            // Tìm đơn hàng theo ghnOrderCode
+//            UserOrderEntity order = userOrderRepository.findByGhnOrderCode(ghnOrderCode);
+//            if (order == null) {
+//                log.warn("GHN webhook - không tìm thấy đơn cho mã: {}", ghnOrderCode);
+//                return;
+//            }
+//
+//            order.setShippingStatus(status);
+//
+//            // Map GHN status → hệ thống state
+//            switch (status) {
+//                case "ready_to_pick":
+//                case "picking":
+//                case "picked":
+//                case "storing":
+//                case "transporting":
+//                case "sorting":
+//                    order.setState(Common.SHIPPING);
+//                    break;
+//                case "delivering":
+//                    order.setState(Common.DELIVERING);
+//                    break;
+//                case "delivered":
+//                    order.setState(Common.COMPLETED);
+//                    log.info("Đơn #{} - GHN giao thành công", order.getId());
+//                    break;
+//                case "delivery_fail":
+//                    order.setState(Common.DELIVERY_FAILED);
+//                    break;
+//                case "waiting_to_return":
+//                case "return":
+//                case "return_transporting":
+//                case "return_sorting":
+//                case "returning":
+//                    order.setState(Common.RETURNING);
+//                    break;
+//                case "returned":
+//                    order.setState(Common.RETURNED);
+//                    break;
+//                case "cancel":
+//                    order.setState(Common.CANCELED);
+//                    order.setReasonCancellation("GHN hủy đơn");
+//                    break;
+//                default:
+//                    log.warn("GHN webhook - trạng thái không xử lý: {}", status);
+//                    break;
+//            }
+//
+//            userOrderRepository.save(order);
+//        } catch (Exception e) {
+//            log.error("GHN webhook error: {}", e.getMessage());
+//        }
+//    }
 }
