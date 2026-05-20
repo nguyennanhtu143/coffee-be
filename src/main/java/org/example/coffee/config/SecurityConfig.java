@@ -50,6 +50,7 @@ public class SecurityConfig {
                 // SePay webhook + cancel unpaid
                 .requestMatchers(HttpMethod.POST, "/api/v1/payment/sepay-webhook").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/v1/order/cancel-unpaid").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/chatbot/ask").permitAll()
 
                 // Swagger UI
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
