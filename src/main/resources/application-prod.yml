@@ -58,3 +58,6 @@ ghn:
   default-weight: ${GHN_DEFAULT_WEIGHT:500}
   default-length: ${GHN_DEFAULT_LENGTH:20}
   default-width: ${GHN_DEFAULT_WIDTH:15}
+
+chatbot:
+  api-key: ${CHATBOT_API_KEY}

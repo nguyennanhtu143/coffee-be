@@ -141,6 +141,7 @@ public class GHNService {
             if (requireShopId) {
                 requestBuilder.header("ShopId", ghnConfig.getShopId());
             }
+						log.info("GHN Request - Token: {}, ShopId: {}, Endpoint: {}", ghnConfig.getToken(), ghnConfig.getShopId(), url);
 
             if ("GET".equals(method)) {
                 requestBuilder.GET();

@@ -35,7 +35,7 @@ public class ChatbotService {
             ProductRepository productRepository,
             ProductSizeRepository productSizeRepository,
             UserOrderRepository userOrderRepository,
-            @Value("${OPENAI_API_KEY:}") String openAiApiKey) {
+            @Value("${chatbot.api-key}") String openAiApiKey) {
         this.productRepository = productRepository;
         this.productSizeRepository = productSizeRepository;
         this.userOrderRepository = userOrderRepository;
