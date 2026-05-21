@@ -19,25 +19,25 @@ public class UserAddressInput {
     @Email(message = "Email không hợp lệ")
     private String email;
 
-    @NotBlank(message = "Địa chỉ không được để trống")
+    @NotBlank(message = "Địa chỉ chi tiết không được để trống")
     private String address;
 
-    @NotNull(message = "Ma tinh/thanh pho khong duoc de trong")
+    @NotNull(message = "Mã tỉnh/thành phố không được để trống")
     private Integer provinceId;
 
-    @NotBlank(message = "Ten tinh/thanh pho khong duoc de trong")
+    @NotBlank(message = "Tên tỉnh/thành phố không được để trống")
     private String provinceName;
 
-    @NotNull(message = "Mã khu vực không được để trống")
+    @NotNull(message = "Mã quận/huyện không được để trống")
     private Integer toDistrictId;
 
-    @NotBlank(message = "Ten quan/huyen khong duoc de trong")
+    @NotBlank(message = "Tên quận/huyện không được để trống")
     private String districtName;
 
     @NotBlank(message = "Mã phường/xã không được để trống")
     private String toWardCode;
 
-    @NotBlank(message = "Ten phuong/xa khong duoc de trong")
+    @NotBlank(message = "Tên phường/xã không được để trống")
     private String wardName;
 
     private Boolean isDefault;
